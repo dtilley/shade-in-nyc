@@ -31,8 +31,8 @@ dtypes = {'the_geom': 'string',
 geom = pd.read_csv('./building.csv', usecols=cols, dtype=dtypes)
 
 # CNSTRCT_YR has NaNs for when the construction year is unknown
-geom.CNSTRCT_YR.isna().sum() # 10469 structures
-geom.CNSTRCT_YR.fillna(value=0, inplace=True) # fill with 0
+geom.CNSTRCT_YR.isna().sum()  # 10469 structures
+geom.CNSTRCT_YR.fillna(value=0, inplace=True)  # fill with 0
 geom.CNSTRCT_YR.astype('int64', copy=False)
 
 g10 = geom[:10]
@@ -68,3 +68,7 @@ boroughs = {'1': 'Manhattan',
             '4': 'Queens',
             '5': 'Staten Island'
             }
+
+
+# Add borough from BIN
+g10['borough'] = g10.BIN.apply(lambda x: boroughs[x[0]])
