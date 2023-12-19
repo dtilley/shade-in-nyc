@@ -1,15 +1,14 @@
-""" This script cleans and reduces the NYC Open Data 'building.csv' file.
-I want to explore the building location and height data.
-Less scatch-like code now :|
+"""This script cleans and reduces the NYC Open Data 'building.csv' file.
+   The resulting csv will be loaded into Tableau.
+   The data was downloaded from the following link:
+   'https://data.cityofnewyork.us/Housing-Development/Building-Footprints/nqwf-w8eh'
 """
-
 import pandas as pd
 import numpy as np
 import re
 
 
-# Load useful columns and try specifying dtypes
-
+# Load useful columns and specify dtypes
 cols = ['the_geom',
         'NAME',
         'BIN',
@@ -27,20 +26,25 @@ dtypes = {'the_geom': 'string',
           'FEAT_CODE': 'string',
           'GROUNDELEV': float}
 
-# Needing a function transforms building geometry to mean longitude and latitude
 geom = pd.read_csv('./building.csv', usecols=cols, dtype=dtypes)
 
 # CNSTRCT_YR has NaNs for when the construction year is unknown
+# CNSTRCT_YR should be 'int64', but I'll address in Tableau
 geom.CNSTRCT_YR.isna().sum()  # 10469 structures
 geom.CNSTRCT_YR.fillna(value=0, inplace=True)  # fill with 0
 geom.CNSTRCT_YR.astype('int64', copy=False)
 
-g10 = geom[:10]
+# Take first 10 rows for debugging
+g10 = geom[:10].copy()
 
-del geom
+# del geom  # for IPython speed while testing
+
+# Select structures taller than minimum 3 story.
+geom = geom.loc[geom.HEIGHTROOF >= 30.0].copy()
 
 
 def simplify_geom(xi):
+    """Calculates the centroid of the shape polygon."""
     longitude = []
     latitude = []
 
@@ -54,14 +58,17 @@ def simplify_geom(xi):
 
 # Works
 g10['location'] = g10.the_geom.apply(simplify_geom)
-
 g10['long'], g10['lat'] = zip(*g10.location)
 
-# Drop redundent and unused columns
-g10.drop(['the_geom', 'location'])
+geom['location'] = geom.the_geom.apply(simplify_geom)
+geom['long'], geom['lat'] = zip(*geom.location)
 
-# Add borough
+# Drop original and intermediate columns
+g10.drop(['the_geom', 'location'], axis=1, inplace=True)
 
+geom.drop(['the_geom', 'location'], axis=1, inplace=True)
+
+# Borough key
 boroughs = {'1': 'Manhattan',
             '2': 'Bronx',
             '3': 'Brooklyn',
@@ -72,3 +79,8 @@ boroughs = {'1': 'Manhattan',
 
 # Add borough from BIN
 g10['borough'] = g10.BIN.apply(lambda x: boroughs[x[0]])
+
+geom['borough'] = geom.BIN.apply(lambda x: boroughs[x[0]])
+
+# Write csv for Tableau
+geom.to_csv('building_location.csv', index=False)
