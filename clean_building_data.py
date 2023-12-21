@@ -40,9 +40,13 @@ g10 = geom[:10].copy()
 # del geom  # for IPython speed while testing
 
 # Select structures taller than minimum 3 story.
+# Count the original shape
+geom.drop_duplicates().shape  # (1083987, 8)
 geom = geom.loc[geom.HEIGHTROOF >= 30.0].copy()
+geom.shape  # (320252, 8) or 29.5%
 
 
+# Calculate centroid
 def simplify_geom(xi):
     """Calculates the centroid of the shape polygon."""
     longitude = []
