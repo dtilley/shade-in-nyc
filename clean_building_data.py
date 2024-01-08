@@ -86,5 +86,17 @@ g10['borough'] = g10.BIN.apply(lambda x: boroughs[x[0]])
 
 geom['borough'] = geom.BIN.apply(lambda x: boroughs[x[0]])
 
-# Write csv for Tableau
+# Write csv
 geom.to_csv('building_location.csv', index=False)
+
+"""Building Definitions
+    1. lowrise h <= 40'
+    2. midrise 40' < h <= 75'
+    3. highrise h > 75'
+
+Distance cutoffs
+    1. 50' from midrise
+    2. 100' from highrise
+
+2 lanes (10') + 2 parking (10') + 2 sidewalks (6') at narrowest
+"""
